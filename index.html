@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SentimentAI | Feedback Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <a class="logo" href="#dashboard">
+      <span class="logo-icon">✦</span> Sentiment<span class="accent">AI</span>
+    </a>
+
+    <div class="nav-label">MAIN MENU</div>
+    <a class="nav active" href="#dashboard">▦ &nbsp; Overview</a>
+    <a class="nav" href="#analyzer">✧ &nbsp; Analyze Review</a>
+    <a class="nav" href="#history">▤ &nbsp; Review History</a>
+
+    <div class="sidebar-bottom">
+      <div class="brain">🧠</div>
+      <b>AI Sentiment Engine</b>
+      <p>Understand opinions with deep learning.</p>
+      <span class="status"><i></i> Flask app ready</span>
+    </div>
+  </aside>
+
+  <main class="main" id="dashboard">
+
+    <header class="topbar">
+      <div>
+        <h2>Overview</h2>
+        <p>Welcome to your customer feedback workspace.</p>
+      </div>
+      <span class="model-pill"><i></i> RNN / LSTM MODEL</span>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">INTELLIGENT TEXT ANALYSIS</span>
+        <h1>Every review tells<br>a <span>story.</span></h1>
+        <p>
+          Discover the feeling behind customer feedback
+          with AI-powered sentiment analysis.
+        </p>
+        <a href="#analyzer" class="hero-button">
+          Analyze a review <span>→</span>
+        </a>
+      </div>
+
+      <div class="hero-visual">
+        <div class="ring ring-a"></div>
+        <div class="ring ring-b"></div>
+        <div class="brain-large">🧠</div>
+        <div class="floating positive-float">😊 Positive</div>
+        <div class="floating negative-float">☹ Negative</div>
+        <div class="floating neutral-float">◉ Neutral</div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="stat green">
+        <div class="stat-heading">Positive feedback <span>↗</span></div>
+        <div class="stat-number" id="positiveCount">0</div>
+        <div class="stat-foot">Positive predictions recorded</div>
+      </article>
+
+      <article class="stat orange">
+        <div class="stat-heading">Negative feedback <span>↘</span></div>
+        <div class="stat-number" id="negativeCount">0</div>
+        <div class="stat-foot">Negative predictions recorded</div>
+      </article>
+
+      <article class="stat blue">
+        <div class="stat-heading">Neutral feedback <span>◉</span></div>
+        <div class="stat-number" id="neutralCount">0</div>
+        <div class="stat-foot">Neutral predictions recorded</div>
+      </article>
+
+      <article class="stat purple">
+        <div class="stat-heading">Total reviews <span>▥</span></div>
+        <div class="stat-number" id="totalCount">0</div>
+        <div class="stat-foot">Reviews in this session</div>
+      </article>
+    </section>
+
+    <section class="charts">
+
+      <article class="card">
+        <div class="card-heading">
+          <div>
+            <h3>Sentiment distribution</h3>
+            <p>Breakdown of analyzed reviews</p>
+          </div>
+          <span class="mini-icon">◔</span>
+        </div>
+
+        <div class="donut-layout">
+          <div class="donut">
+            <canvas id="sentimentChart"></canvas>
+          </div>
+
+          <div class="legend">
+            <div>
+              <i class="dot dot-green"></i>
+              <span>Positive</span>
+              <b id="positiveLegend">0</b>
+            </div>
+            <div>
+              <i class="dot dot-orange"></i>
+              <span>Negative</span>
+              <b id="negativeLegend">0</b>
+            </div>
+            <div>
+              <i class="dot dot-blue"></i>
+              <span>Neutral</span>
+              <b id="neutralLegend">0</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="score-row">
+          <span>Positive share</span>
+          <b id="positivePercent">0%</b>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-heading">
+          <div>
+            <h3>Recent activity</h3>
+            <p>Reviews analyzed in this session</p>
+          </div>
+          <span class="period">THIS SESSION</span>
+        </div>
+
+        <div class="activity-chart">
+          <canvas id="activityChart"></canvas>
+        </div>
+      </article>
+
+    </section>
+
+    <section class="card analyzer" id="analyzer">
+
+      <div class="card-heading">
+        <div>
+          <h3>✦ Analyze customer feedback</h3>
+          <p>Enter a movie or product review to predict its sentiment.</p>
+        </div>
+        <span class="mini-icon">✎</span>
+      </div>
+
+      <form method="POST" action="/" id="reviewForm">
+
+        <label for="review">YOUR REVIEW</label>
+
+        <textarea
+          name="review"
+          id="review"
+          maxlength="2000"
+          required
+          placeholder="Example: The movie was fantastic and I loved every moment!"
+        >{{ review if review else '' }}</textarea>
+
+        <div class="form-footer">
+          <span id="charCount">0 / 2000 characters</span>
+
+          <button class="analyze-button" type="submit">
+            ✦ Analyze Sentiment →
+          </button>
+        </div>
+
+      </form>
+
+      {% if error %}
+      <div class="error-box">
+        <strong>Prediction Error</strong>
+        <p>{{ error }}</p>
+      </div>
+      {% endif %}
+
+      {% if prediction %}
+      <div
+        class="result-box"
+        data-prediction="{{ prediction }}"
+        data-review="{{ review }}"
+      >
+        <span class="result-kicker">MODEL PREDICTION</span>
+        <h2>{{ prediction }}</h2>
+        <p>{{ review }}</p>
+
+        {% if confidence is defined and confidence is not none %}
+        <p>Confidence: {{ confidence }}%</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </section>
+
+    <section class="card history" id="history">
+
+      <div class="card-heading">
+        <div>
+          <h3>Recent reviews</h3>
+          <p>Predictions recorded during this browser session.</p>
+        </div>
+
+        <button class="clear-button" id="clearHistory" type="button">
+          Clear history
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>REVIEW</th>
+              <th>SENTIMENT</th>
+              <th>TIME</th>
+            </tr>
+          </thead>
+
+          <tbody id="historyBody">
+            <tr>
+              <td colspan="3" class="empty">
+                No reviews analyzed yet. Try the form above.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <footer>
+      Made with care · <b>SentimentAI</b> · Python + Flask + RNN/LSTM
+    </footer>
+
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "max_length": 20,
+  "classes": [
+    "Negative",
+    "Positive",
+    "Neutral"
+  ]
+}
